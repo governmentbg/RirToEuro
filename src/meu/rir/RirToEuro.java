@@ -92,6 +92,12 @@ import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import java.util.logging.Level;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.util.Properties;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 /**
  *
@@ -119,16 +125,8 @@ public class RirToEuro extends javax.swing.JFrame {
     public DateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private final String urlLocalItop = Config.URL_LOCAL_ITOP.get();
     private final String urlLocalDaeuReports = Config.URL_LOCAL_DAEUREPORTS.get();
-    private final String urlTestItop = Config.URL_TEST_ITOP.get();
-    private final String urlTestDaeuReports = Config.URL_TEST_DAEUREPORTS.get();
-    private final String urlProdItop = Config.URL_PROD_ITOP.get();
-    private final String urlProdDaeuReports = Config.URL_PROD_DAEUREPORTS.get();
     private final String unmLocal = Config.UNM_LOCAL.get();
     private final String psdLocal = Config.PSD_LOCAL.get();
-    private final String unmTest = Config.UNM_TEST.get();
-    private final String psdTest = Config.PSD_TEST.get();
-    private final String unmProd = Config.UNM_PROD.get();
-    private final String psdProd = Config.PSD_PROD.get();
     private final String driverMariadb = Config.DRIVER_MARIADB.get();
     private static final Logger log = Logger.getLogger(RirToEuro.class.getName());
     private FileHandler fh = null;
@@ -138,51 +136,6 @@ public class RirToEuro extends javax.swing.JFrame {
      * Creates new form RirToEuro
      */
     public RirToEuro() {
-        // +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-        // | Host: 127.0.0.1 - Local	> | Превалутиране на DB: itop		> | Таблица: Asset (local_Itop_Asset_)                                              | getCurrencyItopAsset()				| updateItopAsset()				|
-        // | (menuHost_Local)		  | (menuLocal_Itop)                      | Таблица: Support_history (local_Itop_SupportHistory_)                           | getCurrencyItopSupportHistory()			| updateItopSupportHistory()			|
-        // | 				  |					  | Таблица: Yearly_plan (local_Itop_YearlyPlan_)                                   | getCurrencyItopYearlyPlan()			| updateItopYearlyPlan()			|
-        // | 				  |				  	  | Проверка за връзка към БД (local_Itop_ConnectionChecking_)                      | 							| 						|
-        // | 				  | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-        // | 				  | Превалутиране на DB: daeu_reports	> | Таблица: F_Ethernet_infrastructure (local_DaeuReports_FEthernetInfrastructure_) | getCurrencyDaeuReportsFEthernetInfrastructure()   | updateDaeuReportsFEthernetInfrastructure()	|
-        // | 				  | (menuLocal_DaeuReports)		  | Таблица: F_HardwareAsset (local_DaeuReports_FHardwareAsset_)                    | getCurrencyDaeuReportsFHardwareAsset()		| updateDaeuReportsFHardwareAsset()		|
-        // | 				  |					  | Таблица: F_SoftwareAsset (local_DaeuReports_FSoftwareAsset_)                    | getCurrencyDaeuReportsFSoftwareAsset()		| updateDaeuReportsFSoftwareAsset()		|
-        // | 				  |					  | Таблица: F_Support_history (local_DaeuReports_FSupportHistory_)                 | getCurrencyDaeuReportsFSupportHistory()		| updateDaeuReportsFSupportHistory()		|
-        // | 				  |					  | Таблица: F_Yearly_plan (local_DaeuReports_FYearlyPlan_)                         | getCurrencyDaeuReportsFYearlyPlan()		| updateDaeuReportsFYearlyPlan()		|
-        // | 				  |				 	  | Проверка за връзка към БД (local_DaeuReports_ConnectionChecking_)               |							|						|
-        // | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-        // | Host: XXX.XX.XXX.XX - Test	> | Превалутиране на DB: itop		> | Таблица: Asset (test_Itop_Asset_)                                               | getCurrencyItopAsset()				| updateItopAsset()				|
-        // | (menuHost_Test)		  | (menuTest_Itop)			  | Таблица: Support_history (test_Itop_SupportHistory_)                            | getCurrencyItopSupportHistory()			| updateItopSupportHistory()			|
-        // | 				  |					  | Таблица: Yearly_plan (test_Itop_YearlyPlan_)                                    | getCurrencyItopYearlyPlan()			| updateItopYearlyPlan()			|
-        // | 				  |				  	  | Проверка за връзка към БД (test_Itop_ConnectionChecking_)                       | 							| 						|
-        // | 				  | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-        // | 				  | Превалутиране на DB: daeu_reports	> | Таблица: F_Ethernet_infrastructure (test_DaeuReports_FEthernetInfrastructure_)  | getCurrencyDaeuReportsFEthernetInfrastructure()	| updateDaeuReportsFEthernetInfrastructure()	|
-        // | 				  | (menuTest_DaeuReports)		  | Таблица: F_HardwareAsset (test_DaeuReports_FHardwareAsset_)                     | getCurrencyDaeuReportsFHardwareAsset()		| updateDaeuReportsFHardwareAsset()		|
-        // | 				  |					  | Таблица: F_SoftwareAsset (test_DaeuReports_FSoftwareAsset_)                     | getCurrencyDaeuReportsFSoftwareAsset()		| updateDaeuReportsFSoftwareAsset()		|
-        // | 				  |					  | Таблица: F_Support_history (test_DaeuReports_FSupportHistory_)                  | getCurrencyDaeuReportsFSupportHistory()		| updateDaeuReportsFSupportHistory()		|
-        // | 				  |					  | Таблица: F_Yearly_plan (test_DaeuReports_FYearlyPlan_)                          | getCurrencyDaeuReportsFYearlyPlan()		| updateDaeuReportsFYearlyPlan()		|
-        // | 				  |				 	  | Проверка за връзка към БД (test_DaeuReports_ConnectionChecking_)                |							|						|
-        // | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-        // | Host: XXX.XX.XXX.XX - Prod> | Превалутиране на DB: itop		> | Таблица: Asset (prod_Itop_Asset_)                                               | getCurrencyItopAsset()				| updateItopAsset()				|
-        // | (menuHost_Prod)		  | (menuProd_Itop)			  | Таблица: Support_history (prod_Itop_SupportHistory_)                            | getCurrencyItopSupportHistory()			| updateItopSupportHistory()			|
-        // | 				  |					  | Таблица: Yearly_plan (prod_Itop_YearlyPlan_)                                    | getCurrencyItopYearlyPlan()			| updateItopYearlyPlan()			|
-        // | 				  |				  	  | Проверка за връзка към БД (prod_Itop_ConnectionChecking_)                       | 							| 						|
-        // | 				  | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-        // | 				  | Превалутиране на DB: daeu_reports	> | Таблица: F_Ethernet_infrastructure (prod_DaeuReports_FEthernetInfrastructure_)  | getCurrencyDaeuReportsFEthernetInfrastructure()	| updateDaeuReportsFEthernetInfrastructure()	|
-        // | 				  | (menuProd_DaeuReports)		  | Таблица: F_HardwareAsset (prod_DaeuReports_FHardwareAsset_)                     | getCurrencyDaeuReportsFHardwareAsset()		| updateDaeuReportsFHardwareAsset()		|
-        // | 				  |					  | Таблица: F_SoftwareAsset (prod_DaeuReports_FSoftwareAsset_)                     | getCurrencyDaeuReportsFSoftwareAsset()		| updateDaeuReportsFSoftwareAsset()		|
-        // | 				  |					  | Таблица: F_Support_history (prod_DaeuReports_FSupportHistory_)                  | getCurrencyDaeuReportsFSupportHistory()		| updateDaeuReportsFSupportHistory()		|
-        // | 				  |					  | Таблица: F_Yearly_plan (prod_DaeuReports_FYearlyPlan_)                          | getCurrencyDaeuReportsFYearlyPlan()		| updateDaeuReportsFYearlyPlan()		|
-        // | 				  |				 	  | Проверка за връзка към БД (prod_DaeuReports_ConnectionChecking_)                |							|						|
-        // +------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-        // 
-        // String userName = "";
-        // String password = "";
-        // String url = "jdbc:mariadb://127.0.0.1:3306/itop";
-        // String url = "jdbc:mariadb://127.0.0.1:3306/daeu_reports";
-        // 
-        // String driver = "org.mariadb.jdbc.Driver";
-
         initComponents();
         f = new JFrame();
 
@@ -469,7 +422,7 @@ public class RirToEuro extends javax.swing.JFrame {
 
         menuChoiceFile.add(menuHost_Local);
 
-        menuHost_Test.setText("Host: XXX.XX.XXX.XX - Test");
+        menuHost_Test.setText("Host: 172.23.114.72 - Test");
         menuHost_Test.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         menuHost_Test.setFont(new java.awt.Font("Segoe UI", 0, 17)); // NOI18N
 
@@ -587,7 +540,7 @@ public class RirToEuro extends javax.swing.JFrame {
 
         menuChoiceFile.add(menuHost_Test);
 
-        menuHost_Prod.setText("Host: XXX.XX.XXX.XX - Prod");
+        menuHost_Prod.setText("Host: 172.23.114.141 - Prod");
         menuHost_Prod.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         menuHost_Prod.setFont(new java.awt.Font("Segoe UI", 0, 17)); // NOI18N
 
@@ -746,12 +699,12 @@ public class RirToEuro extends javax.swing.JFrame {
     }//GEN-LAST:event_menuChoiceFileMousePressed
 
     private void menuAboutMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuAboutMouseEntered
-        slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN>&copy;&nbsp;</FONT></b><b><FONT COLOR=BLUE>2025 Ministry&nbsp;of&nbsp;e-Governance.&nbsp;All&nbsp;rights&nbsp;reserved.</FONT>&nbsp;&nbsp;<FONT COLOR=GREEN>Ver.1.03</FONT></b>&nbsp;&nbsp;</html>";
+        slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN>&copy;&nbsp;</FONT></b><b><FONT COLOR=BLUE>2025 Ministry&nbsp;of&nbsp;e-Governance.&nbsp;All&nbsp;rights&nbsp;reserved.</FONT>&nbsp;&nbsp;<FONT COLOR=GREEN>Ver.1.04</FONT></b>&nbsp;&nbsp;</html>";
         setStatusLabel(slText);
     }//GEN-LAST:event_menuAboutMouseEntered
 
     private void menuAboutMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_menuAboutMousePressed
-        slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN>&copy;&nbsp;</FONT></b><b><FONT COLOR=BLUE>2025 Ministry&nbsp;of&nbsp;e-Governance.&nbsp;All&nbsp;rights&nbsp;reserved.</FONT>&nbsp;&nbsp;<FONT COLOR=GREEN>Ver.1.03</FONT></b>&nbsp;&nbsp;</html>";
+        slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN>&copy;&nbsp;</FONT></b><b><FONT COLOR=BLUE>2025 Ministry&nbsp;of&nbsp;e-Governance.&nbsp;All&nbsp;rights&nbsp;reserved.</FONT>&nbsp;&nbsp;<FONT COLOR=GREEN>Ver.1.04</FONT></b>&nbsp;&nbsp;</html>";
         setStatusLabel(slText);
     }//GEN-LAST:event_menuAboutMousePressed
 
@@ -770,7 +723,7 @@ public class RirToEuro extends javax.swing.JFrame {
         unm = unmLocal;
         psd = psdLocal;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_Local(url, host, db, table, unm, psd);
     }//GEN-LAST:event_local_Itop_Asset_ActionPerformed
 
     private void local_Itop_SupportHistory_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_local_Itop_SupportHistory_ActionPerformed
@@ -788,7 +741,7 @@ public class RirToEuro extends javax.swing.JFrame {
         unm = unmLocal;
         psd = psdLocal;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_Local(url, host, db, table, unm, psd);
     }//GEN-LAST:event_local_Itop_SupportHistory_ActionPerformed
 
     private void local_Itop_YearlyPlan_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_local_Itop_YearlyPlan_ActionPerformed
@@ -806,7 +759,7 @@ public class RirToEuro extends javax.swing.JFrame {
         unm = unmLocal;
         psd = psdLocal;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_Local(url, host, db, table, unm, psd);
     }//GEN-LAST:event_local_Itop_YearlyPlan_ActionPerformed
 
     private void local_DaeuReports_FEthernetInfrastructure_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_local_DaeuReports_FEthernetInfrastructure_ActionPerformed
@@ -824,7 +777,7 @@ public class RirToEuro extends javax.swing.JFrame {
         unm = unmLocal;
         psd = psdLocal;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_Local(url, host, db, table, unm, psd);
     }//GEN-LAST:event_local_DaeuReports_FEthernetInfrastructure_ActionPerformed
 
     private void local_DaeuReports_FHardwareAsset_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_local_DaeuReports_FHardwareAsset_ActionPerformed
@@ -842,7 +795,7 @@ public class RirToEuro extends javax.swing.JFrame {
         unm = unmLocal;
         psd = psdLocal;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_Local(url, host, db, table, unm, psd);
     }//GEN-LAST:event_local_DaeuReports_FHardwareAsset_ActionPerformed
 
     private void local_DaeuReports_FSoftwareAsset_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_local_DaeuReports_FSoftwareAsset_ActionPerformed
@@ -860,7 +813,7 @@ public class RirToEuro extends javax.swing.JFrame {
         unm = unmLocal;
         psd = psdLocal;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_Local(url, host, db, table, unm, psd);
     }//GEN-LAST:event_local_DaeuReports_FSoftwareAsset_ActionPerformed
 
     private void local_DaeuReports_FSupportHistory_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_local_DaeuReports_FSupportHistory_ActionPerformed
@@ -878,7 +831,7 @@ public class RirToEuro extends javax.swing.JFrame {
         unm = unmLocal;
         psd = psdLocal;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_Local(url, host, db, table, unm, psd);
     }//GEN-LAST:event_local_DaeuReports_FSupportHistory_ActionPerformed
 
     private void local_DaeuReports_FYearlyPlan_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_local_DaeuReports_FYearlyPlan_ActionPerformed
@@ -896,295 +849,487 @@ public class RirToEuro extends javax.swing.JFrame {
         unm = unmLocal;
         psd = psdLocal;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_Local(url, host, db, table, unm, psd);
     }//GEN-LAST:event_local_DaeuReports_FYearlyPlan_ActionPerformed
 
     private void test_Itop_Asset_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_Itop_Asset_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlTestItop;
-        host = "Test Host";
-        db = "itop";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "itop";
+        textHost = "Test Host";
         table = "Asset";
-        unm = unmTest;
-        psd = psdTest;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_test_Itop_Asset_ActionPerformed
 
     private void test_Itop_SupportHistory_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_Itop_SupportHistory_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlTestItop;
-        host = "Test Host";
-        db = "itop";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "itop";
+        textHost = "Test Host";
         table = "Support_history";
-        unm = unmTest;
-        psd = psdTest;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_test_Itop_SupportHistory_ActionPerformed
 
     private void test_Itop_YearlyPlan_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_Itop_YearlyPlan_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlTestItop;
-        host = "Test Host";
-        db = "itop";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "itop";
+        textHost = "Test Host";
         table = "Yearly_plan";
-        unm = unmTest;
-        psd = psdTest;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_test_Itop_YearlyPlan_ActionPerformed
 
     private void test_DaeuReports_FEthernetInfrastructure_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_DaeuReports_FEthernetInfrastructure_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlTestDaeuReports;
-        host = "Test Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Test Host";
         table = "F_Ethernet_infrastructure";
-        unm = unmTest;
-        psd = psdTest;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_test_DaeuReports_FEthernetInfrastructure_ActionPerformed
 
     private void test_DaeuReports_FHardwareAsset_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_DaeuReports_FHardwareAsset_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlTestDaeuReports;
-        host = "Test Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Test Host";
         table = "F_HardwareAsset";
-        unm = unmTest;
-        psd = psdTest;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_test_DaeuReports_FHardwareAsset_ActionPerformed
 
     private void test_DaeuReports_FSoftwareAsset_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_DaeuReports_FSoftwareAsset_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlTestDaeuReports;
-        host = "Test Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Test Host";
         table = "F_SoftwareAsset";
-        unm = unmTest;
-        psd = psdTest;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_test_DaeuReports_FSoftwareAsset_ActionPerformed
 
     private void test_DaeuReports_FSupportHistory_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_DaeuReports_FSupportHistory_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlTestDaeuReports;
-        host = "Test Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Test Host";
         table = "F_Support_history";
-        unm = unmTest;
-        psd = psdTest;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_test_DaeuReports_FSupportHistory_ActionPerformed
 
     private void test_DaeuReports_FYearlyPlan_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_DaeuReports_FYearlyPlan_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlTestDaeuReports;
-        host = "Test Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Test Host";
         table = "F_Yearly_plan";
-        unm = unmTest;
-        psd = psdTest;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_test_DaeuReports_FYearlyPlan_ActionPerformed
 
     private void prod_Itop_Asset_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_Itop_Asset_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlProdItop;
-        host = "Prod Host";
-        db = "itop";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "itop";
+        textHost = "Prod Host";
         table = "Asset";
-        unm = unmProd;
-        psd = psdProd;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_prod_Itop_Asset_ActionPerformed
 
     private void prod_Itop_SupportHistory_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_Itop_SupportHistory_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlProdItop;
-        host = "Prod Host";
-        db = "itop";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "itop";
+        textHost = "Prod Host";
         table = "Support_history";
-        unm = unmProd;
-        psd = psdProd;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_prod_Itop_SupportHistory_ActionPerformed
 
     private void prod_Itop_YearlyPlan_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_Itop_YearlyPlan_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlProdItop;
-        host = "Prod Host";
-        db = "itop";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "itop";
+        textHost = "Prod Host";
         table = "Yearly_plan";
-        unm = unmProd;
-        psd = psdProd;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_prod_Itop_YearlyPlan_ActionPerformed
 
     private void prod_DaeuReports_FEthernetInfrastructure_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_DaeuReports_FEthernetInfrastructure_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlProdDaeuReports;
-        host = "Prod Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Prod Host";
         table = "F_Ethernet_infrastructure";
-        unm = unmProd;
-        psd = psdProd;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_prod_DaeuReports_FEthernetInfrastructure_ActionPerformed
 
     private void prod_DaeuReports_FHardwareAsset_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_DaeuReports_FHardwareAsset_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlProdDaeuReports;
-        host = "Prod Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Prod Host";
         table = "F_HardwareAsset";
-        unm = unmProd;
-        psd = psdProd;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_prod_DaeuReports_FHardwareAsset_ActionPerformed
 
     private void prod_DaeuReports_FSoftwareAsset_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_DaeuReports_FSoftwareAsset_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlProdDaeuReports;
-        host = "Prod Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Prod Host";
         table = "F_SoftwareAsset";
-        unm = unmProd;
-        psd = psdProd;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_prod_DaeuReports_FSoftwareAsset_ActionPerformed
 
     private void prod_DaeuReports_FSupportHistory_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_DaeuReports_FSupportHistory_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlProdDaeuReports;
-        host = "Prod Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Prod Host";
         table = "F_Support_history";
-        unm = unmProd;
-        psd = psdProd;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_prod_DaeuReports_FSupportHistory_ActionPerformed
 
     private void prod_DaeuReports_FYearlyPlan_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_DaeuReports_FYearlyPlan_ActionPerformed
-        String url = "";    // URL
-        String host = "";   // Host
-        String db = "";     // DB
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 0;
+        String remoteHost = "";  // MariaDB host vs. SSH server
+        int remotePort = 0;  // MariaDB port
+        int localPort = 0;  // Local port through which we will access MariaDB
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "";
+        String textHost = "";  //  Only for text visualization of the currently processed host
         String table = "";  // Table
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        url = urlProdDaeuReports;
-        host = "Prod Host";
-        db = "daeu_reports";
+        sshHost = "";
+        sshUser = "";
+        sshPassword = "";
+        sshPort = 22;
+        remoteHost = "";
+        remotePort = 3306;
+        localPort = 3307;
+        dbUser = "";
+        dbPassword = "";
+        dbName = "daeu_reports";
+        textHost = "Prod Host";
         table = "F_Yearly_plan";
-        unm = unmProd;
-        psd = psdProd;
 
-        connectingToDb(url, host, db, table, unm, psd);
+        connectingToDb_SSH(sshHost, sshUser, sshPassword, sshPort, remoteHost, remotePort, localPort, dbUser, dbPassword, dbName, textHost, table);
     }//GEN-LAST:event_prod_DaeuReports_FYearlyPlan_ActionPerformed
 
     private void local_Itop_ConnectionChecking_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_local_Itop_ConnectionChecking_ActionPerformed
@@ -1288,42 +1433,60 @@ public class RirToEuro extends javax.swing.JFrame {
     }//GEN-LAST:event_local_DaeuReports_ConnectionChecking_ActionPerformed
 
     private void test_Itop_ConnectionChecking_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_Itop_ConnectionChecking_ActionPerformed
-        Connection conn = null;
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 22;
+
+        String remoteHost = "";
+        int remotePort = 3306;
+        int localPort = 3307;
+
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "itop";  // "itop" | "daeu_reports"
+
+        String textHost = "Test Host";     // "Local Host" | "Test Host" | "Prod Host"
         String msg = "";
         String error = "";
-        String host = "";   // Host
-        String db = "";     // DB
-        String table = "";  // Table
-        String url = "";    // URL
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        host = "Test Host";     // "Local Host" | "Test Host" | "Prod Host"
-        db = "itop";            // "itop" | "daeu_reports"
-        table = "Asset";        // "Asset" | "F_SoftwareAsset"
-        url = urlTestItop;      // urlLocalItop | urlLocalDaeuReports | urlTestItop | urlTestDaeuReports | urlProdItop | urlProdDaeuReports
-        unm = unmTest;          // unmLocal | unmTest | unmProd
-        psd = psdTest;          // psdLocal | psdTest | psdProd
+        Session session = null;
+        Connection connection = null;
 
         try {
-            Class.forName(driverMariadb);
-            conn = DriverManager.getConnection(url, unm, psd);
+            // Създаване на SSH тунел
+            JSch jsch = new JSch();
+            session = jsch.getSession(sshUser, sshHost, sshPort);
+            session.setPassword(sshPassword);
 
-            taText = " • Успешно свързване към: " + host + " | DB: " + db + "";
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+
+            // Пренасочване на локален порт към отдалечения MariaDB сървър
+            int assignedPort = session.setPortForwardingL(localPort, remoteHost, remotePort);
+            // System.out.println("SSH Tunnel established on localhost:" + assignedPort);
+
+            // Свързване към MariaDB чрез локалния порт
+            Class.forName(driverMariadb);
+            String jdbcUrl = "jdbc:mariadb://localhost:" + localPort + "/" + dbName;
+            connection = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+            // System.out.println("Connected to MariaDB!");
+
+            taText = " • Успешно свързване към: " + textHost + " | DB: " + dbName + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "------------------------------------------------------------------------------------------------------------------";
             setDataGeneralStatisticsTextArea(taText);
 
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + textHost + " | DB: " + dbName + "</FONT></i></html>";
             setStatusLabel(slText);
 			
-            System.out.println("Connection is successful to: " + host + " | DB: " + db + "!");
-            log.info("Connection is successful to: " + host + " | DB: " + db + "!");
+            System.out.println("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
+            log.info("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
         } catch (Exception e) {
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + host + " | DB: " + db + "</i></FONT></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + "</i></FONT></html>";
             setStatusLabel(slText);
 
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + host + " | DB: " + db + "</i></FONT></html>";
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + "</i></FONT></html>";
             JOptionPane.showMessageDialog(f, msg);
 
             error = e.getMessage();
@@ -1334,46 +1497,80 @@ public class RirToEuro extends javax.swing.JFrame {
 			
             System.out.println("Error: " + error);
             log.log(Level.WARNING, "Error: " + error);
+        } finally {
+            try {
+                if (connection != null) connection.close();
+                if (session != null) session.disconnect();
+
+                taText = " • Connection closed!";
+                setDataGeneralStatisticsTextArea(taText);
+                taText = "------------------------------------------------------------------------------------------------------------------";
+                setDataGeneralStatisticsTextArea(taText);
+
+                slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Connection closed!";
+                setStatusLabel(slText);
+
+                System.out.println("Connection closed!");
+                log.info("Connection closed!");
+            } catch (Exception ignored) {}
         }
     }//GEN-LAST:event_test_Itop_ConnectionChecking_ActionPerformed
 
     private void test_DaeuReports_ConnectionChecking_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_test_DaeuReports_ConnectionChecking_ActionPerformed
-        Connection conn = null;
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 22;
+
+        String remoteHost = "";
+        int remotePort = 3306;
+        int localPort = 3307;
+
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "daeu_reports";  // "itop" | "daeu_reports"
+
+        String textHost = "Test Host";     // "Local Host" | "Test Host" | "Prod Host"
         String msg = "";
         String error = "";
-        String host = "";   // Host
-        String db = "";     // DB
-        String table = "";  // Table
-        String url = "";    // URL
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        host = "Test Host";         // "Local Host" | "Test Host" | "Prod Host"
-        db = "daeu_reports";        // "itop" | "daeu_reports"
-        table = "F_SoftwareAsset";  // "Asset" | "F_SoftwareAsset"
-        url = urlTestDaeuReports;   // urlLocalItop | urlLocalDaeuReports | urlTestItop | urlTestDaeuReports | urlProdItop | urlProdDaeuReports
-        unm = unmTest;              // unmLocal | unmTest | unmProd
-        psd = psdTest;              // psdLocal | psdTest | psdProd
+        Session session = null;
+        Connection connection = null;
 
         try {
-            Class.forName(driverMariadb);
-            conn = DriverManager.getConnection(url, unm, psd);
+            // Създаване на SSH тунел
+            JSch jsch = new JSch();
+            session = jsch.getSession(sshUser, sshHost, sshPort);
+            session.setPassword(sshPassword);
 
-            taText = " • Успешно свързване към: " + host + " | DB: " + db + "";
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+
+            // Пренасочване на локален порт към отдалечения MariaDB сървър
+            int assignedPort = session.setPortForwardingL(localPort, remoteHost, remotePort);
+            // System.out.println("SSH Tunnel established on localhost:" + assignedPort);
+
+            // Свързване към MariaDB чрез локалния порт
+            Class.forName(driverMariadb);
+            String jdbcUrl = "jdbc:mariadb://localhost:" + localPort + "/" + dbName;
+            connection = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+            // System.out.println("Connected to MariaDB!");
+
+            taText = " • Успешно свързване към: " + textHost + " | DB: " + dbName + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "------------------------------------------------------------------------------------------------------------------";
             setDataGeneralStatisticsTextArea(taText);
 
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + textHost + " | DB: " + dbName + "</FONT></i></html>";
             setStatusLabel(slText);
 			
-            System.out.println("Connection is successful to: " + host + " | DB: " + db + "!");
-            log.info("Connection is successful to: " + host + " | DB: " + db + "!");
+            System.out.println("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
+            log.info("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
         } catch (Exception e) {
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + host + " | DB: " + db + "</i></FONT></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + "</i></FONT></html>";
             setStatusLabel(slText);
 
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + host + " | DB: " + db + "</i></FONT></html>";
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + "</i></FONT></html>";
             JOptionPane.showMessageDialog(f, msg);
 
             error = e.getMessage();
@@ -1384,46 +1581,80 @@ public class RirToEuro extends javax.swing.JFrame {
 			
             System.out.println("Error: " + error);
             log.log(Level.WARNING, "Error: " + error);
+        } finally {
+            try {
+                if (connection != null) connection.close();
+                if (session != null) session.disconnect();
+
+                taText = " • Connection closed!";
+                setDataGeneralStatisticsTextArea(taText);
+                taText = "------------------------------------------------------------------------------------------------------------------";
+                setDataGeneralStatisticsTextArea(taText);
+
+                slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Connection closed!";
+                setStatusLabel(slText);
+
+                System.out.println("Connection closed!");
+                log.info("Connection closed!");
+            } catch (Exception ignored) {}
         }
     }//GEN-LAST:event_test_DaeuReports_ConnectionChecking_ActionPerformed
 
     private void prod_Itop_ConnectionChecking_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_Itop_ConnectionChecking_ActionPerformed
-        Connection conn = null;
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 22;
+
+        String remoteHost = "";
+        int remotePort = 3306;
+        int localPort = 3307;
+
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "itop";  // "itop" | "daeu_reports"
+
+        String textHost = "Prod Host";     // "Local Host" | "Test Host" | "Prod Host"
         String msg = "";
         String error = "";
-        String host = "";   // Host
-        String db = "";     // DB
-        String table = "";  // Table
-        String url = "";    // URL
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        host = "Prod Host";     // "Local Host" | "Test Host" | "Prod Host"
-        db = "itop";            // "itop" | "daeu_reports"
-        table = "Asset";        // "Asset" | "F_SoftwareAsset"
-        url = urlProdItop;      // urlLocalItop | urlLocalDaeuReports | urlTestItop | urlTestDaeuReports | urlProdItop | urlProdDaeuReports
-        unm = unmProd;          // unmLocal | unmTest | unmProd
-        psd = psdProd;          // psdLocal | psdTest | psdProd
+        Session session = null;
+        Connection connection = null;
 
         try {
-            Class.forName(driverMariadb);
-            conn = DriverManager.getConnection(url, unm, psd);
+            // Създаване на SSH тунел
+            JSch jsch = new JSch();
+            session = jsch.getSession(sshUser, sshHost, sshPort);
+            session.setPassword(sshPassword);
 
-            taText = " • Успешно свързване към: " + host + " | DB: " + db + "";
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+
+            // Пренасочване на локален порт към отдалечения MariaDB сървър
+            int assignedPort = session.setPortForwardingL(localPort, remoteHost, remotePort);
+            // System.out.println("SSH Tunnel established on localhost:" + assignedPort);
+
+            // Свързване към MariaDB чрез локалния порт
+            Class.forName(driverMariadb);
+            String jdbcUrl = "jdbc:mariadb://localhost:" + localPort + "/" + dbName;
+            connection = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+            // System.out.println("Connected to MariaDB!");
+
+            taText = " • Успешно свързване към: " + textHost + " | DB: " + dbName + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "------------------------------------------------------------------------------------------------------------------";
             setDataGeneralStatisticsTextArea(taText);
 
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + textHost + " | DB: " + dbName + "</FONT></i></html>";
             setStatusLabel(slText);
 			
-            System.out.println("Connection is successful to: " + host + " | DB: " + db + "!");
-            log.info("Connection is successful to: " + host + " | DB: " + db + "!");
+            System.out.println("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
+            log.info("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
         } catch (Exception e) {
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + host + " | DB: " + db + "</i></FONT></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + "</i></FONT></html>";
             setStatusLabel(slText);
 
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + host + " | DB: " + db + "</i></FONT></html>";
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + "</i></FONT></html>";
             JOptionPane.showMessageDialog(f, msg);
 
             error = e.getMessage();
@@ -1434,46 +1665,80 @@ public class RirToEuro extends javax.swing.JFrame {
 			
             System.out.println("Error: " + error);
             log.log(Level.WARNING, "Error: " + error);
+        } finally {
+            try {
+                if (connection != null) connection.close();
+                if (session != null) session.disconnect();
+
+                taText = " • Connection closed!";
+                setDataGeneralStatisticsTextArea(taText);
+                taText = "------------------------------------------------------------------------------------------------------------------";
+                setDataGeneralStatisticsTextArea(taText);
+
+                slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Connection closed!";
+                setStatusLabel(slText);
+
+                System.out.println("Connection closed!");
+                log.info("Connection closed!");
+            } catch (Exception ignored) {}
         }
     }//GEN-LAST:event_prod_Itop_ConnectionChecking_ActionPerformed
 
     private void prod_DaeuReports_ConnectionChecking_ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_prod_DaeuReports_ConnectionChecking_ActionPerformed
-        Connection conn = null;
+        String sshHost = "";
+        String sshUser = "";
+        String sshPassword = "";
+        int sshPort = 22;
+
+        String remoteHost = "";
+        int remotePort = 3306;
+        int localPort = 3307;
+
+        String dbUser = "";
+        String dbPassword = "";
+        String dbName = "daeu_reports";  // "itop" | "daeu_reports"
+
+        String textHost = "Prod Host";     // "Local Host" | "Test Host" | "Prod Host"
         String msg = "";
         String error = "";
-        String host = "";   // Host
-        String db = "";     // DB
-        String table = "";  // Table
-        String url = "";    // URL
-        String unm = "";    // Username
-        String psd = "";    // Password
 
-        host = "Prod Host";         // "Local Host" | "Test Host" | "Prod Host"
-        db = "daeu_reports";        // "itop" | "daeu_reports"
-        table = "F_SoftwareAsset";  // "Asset" | "F_SoftwareAsset"
-        url = urlProdDaeuReports;   // urlLocalItop | urlLocalDaeuReports | urlTestItop | urlTestDaeuReports | urlProdItop | urlProdDaeuReports
-        unm = unmProd;              // unmLocal | unmTest | unmProd
-        psd = psdProd;              // psdLocal | psdTest | psdProd
+        Session session = null;
+        Connection connection = null;
 
         try {
-            Class.forName(driverMariadb);
-            conn = DriverManager.getConnection(url, unm, psd);
+            // Създаване на SSH тунел
+            JSch jsch = new JSch();
+            session = jsch.getSession(sshUser, sshHost, sshPort);
+            session.setPassword(sshPassword);
 
-            taText = " • Успешно свързване към: " + host + " | DB: " + db + "";
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+
+            // Пренасочване на локален порт към отдалечения MariaDB сървър
+            int assignedPort = session.setPortForwardingL(localPort, remoteHost, remotePort);
+            // System.out.println("SSH Tunnel established on localhost:" + assignedPort);
+
+            // Свързване към MariaDB чрез локалния порт
+            Class.forName(driverMariadb);
+            String jdbcUrl = "jdbc:mariadb://localhost:" + localPort + "/" + dbName;
+            connection = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+            // System.out.println("Connected to MariaDB!");
+
+            taText = " • Успешно свързване към: " + textHost + " | DB: " + dbName + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "------------------------------------------------------------------------------------------------------------------";
             setDataGeneralStatisticsTextArea(taText);
 
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + textHost + " | DB: " + dbName + "</FONT></i></html>";
             setStatusLabel(slText);
 			
-            System.out.println("Connection is successful to: " + host + " | DB: " + db + "!");
-            log.info("Connection is successful to: " + host + " | DB: " + db + "!");
+            System.out.println("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
+            log.info("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
         } catch (Exception e) {
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + host + " | DB: " + db + "</i></FONT></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + "</i></FONT></html>";
             setStatusLabel(slText);
 
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + host + " | DB: " + db + "</i></FONT></html>";
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + "</i></FONT></html>";
             JOptionPane.showMessageDialog(f, msg);
 
             error = e.getMessage();
@@ -1484,6 +1749,22 @@ public class RirToEuro extends javax.swing.JFrame {
 			
             System.out.println("Error: " + error);
             log.log(Level.WARNING, "Error: " + error);
+        } finally {
+            try {
+                if (connection != null) connection.close();
+                if (session != null) session.disconnect();
+
+                taText = " • Connection closed!";
+                setDataGeneralStatisticsTextArea(taText);
+                taText = "------------------------------------------------------------------------------------------------------------------";
+                setDataGeneralStatisticsTextArea(taText);
+
+                slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Connection closed!";
+                setStatusLabel(slText);
+
+                System.out.println("Connection closed!");
+                log.info("Connection closed!");
+            } catch (Exception ignored) {}
         }
     }//GEN-LAST:event_prod_DaeuReports_ConnectionChecking_ActionPerformed
 
@@ -1522,7 +1803,7 @@ public class RirToEuro extends javax.swing.JFrame {
         });
     }
 
-    public void connectingToDb(String url, String host, String db, String table, String unm, String psd) {
+    public void connectingToDb_Local(String url, String host, String db, String table, String unm, String psd) {
         Connection conn = null;
         String msg = "";
         String error = "";
@@ -1598,21 +1879,108 @@ public class RirToEuro extends javax.swing.JFrame {
             log.log(Level.WARNING, "Error: " + error);
         }
     }
+    
+    public void connectingToDb_SSH(String sshHost, String sshUser, String sshPassword, int sshPort, String remoteHost, int remotePort, int localPort, String dbUser, String dbPassword, String dbName, String textHost, String table) {
+        Session session = null;
+        Connection conn = null;
+        String msg = "";
+        String error = "";
+        
+        try {
+            // Създаване на SSH тунел
+            JSch jsch = new JSch();
+            session = jsch.getSession(sshUser, sshHost, sshPort);
+            session.setPassword(sshPassword);
 
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect();
+
+            // Пренасочване на локален порт към отдалечения MariaDB сървър
+            int assignedPort = session.setPortForwardingL(localPort, remoteHost, remotePort);
+            // System.out.println("SSH Tunnel established on localhost:" + assignedPort);
+
+            // Свързване към MariaDB чрез локалния порт
+            Class.forName(driverMariadb);
+            String jdbcUrl = "jdbc:mariadb://localhost:" + localPort + "/" + dbName;
+            conn = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+            // System.out.println("Connected to MariaDB!");
+
+            taText = " • Успешно свързване към: " + textHost + " | DB: " + dbName + " | Table: " + table + "";
+            setDataGeneralStatisticsTextArea(taText);
+            taText = "------------------------------------------------------------------------------------------------------------------";
+            setDataGeneralStatisticsTextArea(taText);
+
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно свързване към:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + textHost + " | DB: " + dbName + " | Table: " + table + "</FONT></i></html>";
+            setStatusLabel(slText);
+
+            Object[] options = {"Да, моля", "Няма начин!"};
+            msg = "<html><i><b><FONT COLOR=BLUE>Да стартира ли превалутиране BGN -> EURO?</FONT></b></i></html>";
+            int num_opt = JOptionPane.showOptionDialog(f, msg, "Уместен въпрос", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
+            if (num_opt == JOptionPane.YES_OPTION) {
+                switch (table) {
+                    case "Asset":  // DB: itop
+                        getCurrencyItopAsset(conn, textHost, dbName, table);  // -> updateItopAsset(conn, host, db, table);
+                        break;
+                    case "Support_history":  // DB: itop
+                        getCurrencyItopSupportHistory(conn, textHost, dbName, table);  // -> updateItopSupportHistory(conn, host, db, table);
+                        break;
+                    case "Yearly_plan":  // DB: itop
+                        getCurrencyItopYearlyPlan(conn, textHost, dbName, table);  // -> updateItopYearlyPlan(conn, host, db, table);
+                        break;
+                    case "F_Ethernet_infrastructure":  // DB daeu_reports
+                        getCurrencyDaeuReportsFEthernetInfrastructure(conn, textHost, dbName, table);  // -> updateDaeuReportsFEthernetInfrastructure(conn, host, db, table);
+                        break;
+                    case "F_HardwareAsset":  // DB daeu_reports
+                        getCurrencyDaeuReportsFHardwareAsset(conn, textHost, dbName, table);  // -> updateDaeuReportsFHardwareAsset(conn, host, db, table);
+                        break;
+                    case "F_SoftwareAsset":  // DB daeu_reports
+                        getCurrencyDaeuReportsFSoftwareAsset(conn, textHost, dbName, table);  // -> updateDaeuReportsFSoftwareAsset(conn, host, db, table);
+                        break;
+                    case "F_Support_history":  // DB daeu_reports
+                        getCurrencyDaeuReportsFSupportHistory(conn, textHost, dbName, table);  // -> updateDaeuReportsFSupportHistory(conn, host, db, table);
+                        break;
+                    case "F_Yearly_plan":  // DB daeu_reports
+                        getCurrencyDaeuReportsFYearlyPlan(conn, textHost, dbName, table);  // -> updateDaeuReportsFYearlyPlan(conn, host, db, table);
+                        break;
+                    default:
+                        break;
+                }
+            } else if (num_opt == JOptionPane.NO_OPTION) {
+                msg = "<html><i><b><FONT COLOR=BLUE>Отказът Ви е одобрен!</FONT></b></i></html>";
+                JOptionPane.showMessageDialog(f, msg);
+                clearStatusLabel();
+            } else {
+                msg = "<html><i><b><FONT COLOR=BLUE>Отказът Ви е одобрен!</FONT></b></i></html>";
+                JOptionPane.showMessageDialog(f, msg);
+                clearStatusLabel();
+            }
+            System.out.println("Connection is successful to: " + textHost + " | DB: " + dbName + " | Table: " + table + "!");
+            log.info("Connection is successful to: " + textHost + " | DB: " + dbName + "!");
+        } catch (Exception e) {
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + " | Table: " + table + "</i></FONT></html>";
+            setStatusLabel(slText);
+
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=RED> • Неуспешно свързване към:&nbsp;&nbsp;</b><i>" + textHost + " | DB: " + dbName + " | Table: " + table + "</i></FONT></html>";
+            JOptionPane.showMessageDialog(f, msg);
+
+            error = e.getMessage();
+            taText = " • Error: " + error + "!";
+            setDataGeneralStatisticsTextArea(taText);
+            taText = "------------------------------------------------------------------------------------------------------------------";
+            setDataGeneralStatisticsTextArea(taText);
+            System.out.println("Error: " + error);
+            log.log(Level.WARNING, "Error: " + error);
+        }
+    }
+    
     // ----- Asset ---------------------------------------------------------------------
     public void getCurrencyItopAsset(Connection conn, String host, String db, String table) {
         Statement stmt = null;
         String sql = "";
         ResultSet resultSet = null;
         String msg = "";
-
-        Date startDate = null;
-        Date endDate = null;
-        Long timeDifference = 0L;
-        Long secondsDifference = 0L;
-        Long minutesDifferense = 0L;
-        Long hoursDifference = 0L;
-
+        long startTime = System.currentTimeMillis();
+        
         Integer id = 0;
         String inventory_key = "";
         Double acquiring_price = 0.00d;
@@ -1697,7 +2065,6 @@ public class RirToEuro extends javax.swing.JFrame {
 
         try {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            startDate = generateCurrentDate();
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
 
@@ -1829,26 +2196,29 @@ public class RirToEuro extends javax.swing.JFrame {
             }
 
             updateItopAsset(conn, host, db, table);
-
-            endDate = generateCurrentDate();
-            timeDifference = (endDate.getTime() - startDate.getTime());
-            secondsDifference = ((timeDifference / 1000) % 60);
-            minutesDifferense = ((timeDifference / (1000 * 60)) % 60);
-            hoursDifference = ((timeDifference / (1000 * 60 * 60)) % 24);
-
-            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
+            
+            long endTime = System.currentTimeMillis();
+            long durationMillis = (endTime - startTime);
+            double durationMinutes = ((durationMillis / 1000.0) / 60.0);
+            int duration = (int) Math.round(durationMinutes);
+            
+            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!";
+            // taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "==================================================================================================================";
             setDataGeneralStatisticsTextArea(taText);
             
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
             setStatusLabel(slText);
             
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
-            JOptionPane.showMessageDialog(f, msg);
+            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути");
+            // log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
 
-            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
             this.setCursor(Cursor.getDefaultCursor());
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            JOptionPane.showMessageDialog(f, msg);
         } catch (SQLException se) {
             this.setCursor(Cursor.getDefaultCursor());
             taText = " • Error: " + se.getMessage();
@@ -2026,13 +2396,7 @@ public class RirToEuro extends javax.swing.JFrame {
         String sql = "";
         ResultSet resultSet = null;
         String msg = "";
-
-        Date startDate = null;
-        Date endDate = null;
-        Long timeDifference = 0L;
-        Long secondsDifference = 0L;
-        Long minutesDifferense = 0L;
-        Long hoursDifference = 0L;
+        long startTime = System.currentTimeMillis();
 
         Integer id = 0;
         Integer asset_id = 0;
@@ -2123,7 +2487,6 @@ public class RirToEuro extends javax.swing.JFrame {
 
         try {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            startDate = generateCurrentDate();
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
 
@@ -2144,7 +2507,7 @@ public class RirToEuro extends javax.swing.JFrame {
 
                 dataSupportHistory = new SupportHistory();
                 dataSupportHistory.id = id;
-               dataSupportHistory.asset_id = asset_id;
+                dataSupportHistory.asset_id = asset_id;
                 dataSupportHistory.resource_cost = resource_cost;
                 dataSupportHistory.resource_cost_parts = resource_cost_parts;
                 listSupportHistory.add(dataSupportHistory);
@@ -2274,25 +2637,28 @@ public class RirToEuro extends javax.swing.JFrame {
 
             updateItopSupportHistory(conn, host, db, table);
 
-            endDate = generateCurrentDate();
-            timeDifference = (endDate.getTime() - startDate.getTime());
-            secondsDifference = ((timeDifference / 1000) % 60);
-            minutesDifferense = ((timeDifference / (1000 * 60)) % 60);
-            hoursDifference = ((timeDifference / (1000 * 60 * 60)) % 24);
+            long endTime = System.currentTimeMillis();
+            long durationMillis = (endTime - startTime);
+            double durationMinutes = ((durationMillis / 1000.0) / 60.0);
+            int duration = (int) Math.round(durationMinutes);
 
-            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
+            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!";
+            // taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "==================================================================================================================";
             setDataGeneralStatisticsTextArea(taText);
             
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
             setStatusLabel(slText);
             
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
-            JOptionPane.showMessageDialog(f, msg);
+            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути");
+            // log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
 
-            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
             this.setCursor(Cursor.getDefaultCursor());
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            JOptionPane.showMessageDialog(f, msg);
         } catch (SQLException se) {
             this.setCursor(Cursor.getDefaultCursor());
             taText = " • Error: " + se.getMessage();
@@ -2475,13 +2841,7 @@ public class RirToEuro extends javax.swing.JFrame {
         String sql = "";
         ResultSet resultSet = null;
         String msg = "";
-
-        Date startDate = null;
-        Date endDate = null;
-        Long timeDifference = 0L;
-        Long secondsDifference = 0L;
-        Long minutesDifferense = 0L;
-        Long hoursDifference = 0L;
+        long startTime = System.currentTimeMillis();
 
         Integer id = 0;
         String month = "";
@@ -2570,7 +2930,6 @@ public class RirToEuro extends javax.swing.JFrame {
                 + "ORDER BY id ASC";
         try {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            startDate = generateCurrentDate();
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
 
@@ -2714,25 +3073,28 @@ public class RirToEuro extends javax.swing.JFrame {
 
             updateItopYearlyPlan(conn, host, db, table);
 
-            endDate = generateCurrentDate();
-            timeDifference = (endDate.getTime() - startDate.getTime());
-            secondsDifference = ((timeDifference / 1000) % 60);
-            minutesDifferense = ((timeDifference / (1000 * 60)) % 60);
-            hoursDifference = ((timeDifference / (1000 * 60 * 60)) % 24);
+            long endTime = System.currentTimeMillis();
+            long durationMillis = (endTime - startTime);
+            double durationMinutes = ((durationMillis / 1000.0) / 60.0);
+            int duration = (int) Math.round(durationMinutes);
 
-            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
+            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!";
+            // taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "==================================================================================================================";
             setDataGeneralStatisticsTextArea(taText);
             
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
             setStatusLabel(slText);
             
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
-            JOptionPane.showMessageDialog(f, msg);
+            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути");
+            // log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
 
-            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
             this.setCursor(Cursor.getDefaultCursor());
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            JOptionPane.showMessageDialog(f, msg);
         } catch (SQLException se) {
             this.setCursor(Cursor.getDefaultCursor());
             taText = " • Error: " + se.getMessage();
@@ -2913,13 +3275,7 @@ public class RirToEuro extends javax.swing.JFrame {
         String sql = "";
         ResultSet resultSet = null;
         String msg = "";
-
-        Date startDate = null;
-        Date endDate = null;
-        Long timeDifference = 0L;
-        Long secondsDifference = 0L;
-        Long minutesDifferense = 0L;
-        Long hoursDifference = 0L;
+        long startTime = System.currentTimeMillis();
 
         Integer record_id = 0;
         String inventory_key = "";
@@ -3006,7 +3362,6 @@ public class RirToEuro extends javax.swing.JFrame {
 
         try {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            startDate = generateCurrentDate();
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
 
@@ -3141,25 +3496,28 @@ public class RirToEuro extends javax.swing.JFrame {
 
             updateDaeuReportsFEthernetInfrastructure(conn, host, db, table);
 
-            endDate = generateCurrentDate();
-            timeDifference = (endDate.getTime() - startDate.getTime());
-            secondsDifference = ((timeDifference / 1000) % 60);
-            minutesDifferense = ((timeDifference / (1000 * 60)) % 60);
-            hoursDifference = ((timeDifference / (1000 * 60 * 60)) % 24);
+            long endTime = System.currentTimeMillis();
+            long durationMillis = (endTime - startTime);
+            double durationMinutes = ((durationMillis / 1000.0) / 60.0);
+            int duration = (int) Math.round(durationMinutes);
 
-            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
+            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!";
+            // taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "==================================================================================================================";
             setDataGeneralStatisticsTextArea(taText);
             
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
             setStatusLabel(slText);
             
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
-            JOptionPane.showMessageDialog(f, msg);
+            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути");
+            // log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
 
-            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
             this.setCursor(Cursor.getDefaultCursor());
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            JOptionPane.showMessageDialog(f, msg);
         } catch (SQLException se) {
             this.setCursor(Cursor.getDefaultCursor());
             taText = " • Error: " + se.getMessage();
@@ -3338,13 +3696,7 @@ public class RirToEuro extends javax.swing.JFrame {
         String sql = "";
         ResultSet resultSet = null;
         String msg = "";
-
-        Date startDate = null;
-        Date endDate = null;
-        Long timeDifference = 0L;
-        Long secondsDifference = 0L;
-        Long minutesDifferense = 0L;
-        Long hoursDifference = 0L;
+        long startTime = System.currentTimeMillis();
 
         Integer record_id = 0;
         String inventory_key = "";
@@ -3431,7 +3783,6 @@ public class RirToEuro extends javax.swing.JFrame {
 
         try {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            startDate = generateCurrentDate();
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
 
@@ -3566,25 +3917,28 @@ public class RirToEuro extends javax.swing.JFrame {
 
             updateDaeuReportsFHardwareAsset(conn, host, db, table);
 
-            endDate = generateCurrentDate();
-            timeDifference = (endDate.getTime() - startDate.getTime());
-            secondsDifference = ((timeDifference / 1000) % 60);
-            minutesDifferense = ((timeDifference / (1000 * 60)) % 60);
-            hoursDifference = ((timeDifference / (1000 * 60 * 60)) % 24);
+            long endTime = System.currentTimeMillis();
+            long durationMillis = (endTime - startTime);
+            double durationMinutes = ((durationMillis / 1000.0) / 60.0);
+            int duration = (int) Math.round(durationMinutes);
 
-            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
+            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!";
+            // taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "==================================================================================================================";
             setDataGeneralStatisticsTextArea(taText);
             
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
             setStatusLabel(slText);
             
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
-            JOptionPane.showMessageDialog(f, msg);
+            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути");
+            // log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
 
-            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
             this.setCursor(Cursor.getDefaultCursor());
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            JOptionPane.showMessageDialog(f, msg);
         } catch (SQLException se) {
             this.setCursor(Cursor.getDefaultCursor());
             taText = " • Error: " + se.getMessage();
@@ -3761,13 +4115,7 @@ public class RirToEuro extends javax.swing.JFrame {
         String sql = "";
         ResultSet resultSet = null;
         String msg = "";
-
-        Date startDate = null;
-        Date endDate = null;
-        Long timeDifference = 0L;
-        Long secondsDifference = 0L;
-        Long minutesDifferense = 0L;
-        Long hoursDifference = 0L;
+        long startTime = System.currentTimeMillis();
 
         Integer record_id = 0;
         String inventory_key = "";
@@ -3854,7 +4202,6 @@ public class RirToEuro extends javax.swing.JFrame {
 
         try {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            startDate = generateCurrentDate();
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
 
@@ -3989,25 +4336,28 @@ public class RirToEuro extends javax.swing.JFrame {
 
             updateDaeuReportsFSoftwareAsset(conn, host, db, table);
 
-            endDate = generateCurrentDate();
-            timeDifference = (endDate.getTime() - startDate.getTime());
-            secondsDifference = ((timeDifference / 1000) % 60);
-            minutesDifferense = ((timeDifference / (1000 * 60)) % 60);
-            hoursDifference = ((timeDifference / (1000 * 60 * 60)) % 24);
+            long endTime = System.currentTimeMillis();
+            long durationMillis = (endTime - startTime);
+            double durationMinutes = ((durationMillis / 1000.0) / 60.0);
+            int duration = (int) Math.round(durationMinutes);
 
-            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
+            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!";
+            // taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "==================================================================================================================";
             setDataGeneralStatisticsTextArea(taText);
             
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
             setStatusLabel(slText);
             
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
-            JOptionPane.showMessageDialog(f, msg);
+            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути");
+            // log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
 
-            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
             this.setCursor(Cursor.getDefaultCursor());
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            JOptionPane.showMessageDialog(f, msg);
         } catch (SQLException se) {
             this.setCursor(Cursor.getDefaultCursor());
             taText = " • Error: " + se.getMessage();
@@ -4191,13 +4541,7 @@ public class RirToEuro extends javax.swing.JFrame {
         FSupportHistory dataFSupportHistory = null;
         listFSupportHistory = new ArrayList<>();
         BufferedWriter bw = null;
-
-        Date startDate = null;
-        Date endDate = null;
-        Long timeDifference = 0L;
-        Long secondsDifference = 0L;
-        Long minutesDifferense = 0L;
-        Long hoursDifference = 0L;
+        long startTime = System.currentTimeMillis();
 
         Integer record_id = 0;
         Integer asset_id = 0;
@@ -4287,7 +4631,6 @@ public class RirToEuro extends javax.swing.JFrame {
 
         try {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            startDate = generateCurrentDate();
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
 
@@ -4439,25 +4782,28 @@ public class RirToEuro extends javax.swing.JFrame {
 
             updateDaeuReportsFSupportHistory(conn, host, db, table);
 
-            endDate = generateCurrentDate();
-            timeDifference = (endDate.getTime() - startDate.getTime());
-            secondsDifference = ((timeDifference / 1000) % 60);
-            minutesDifferense = ((timeDifference / (1000 * 60)) % 60);
-            hoursDifference = ((timeDifference / (1000 * 60 * 60)) % 24);
+            long endTime = System.currentTimeMillis();
+            long durationMillis = (endTime - startTime);
+            double durationMinutes = ((durationMillis / 1000.0) / 60.0);
+            int duration = (int) Math.round(durationMinutes);
 
-            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
+            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!";
+            // taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "==================================================================================================================";
             setDataGeneralStatisticsTextArea(taText);
             
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
             setStatusLabel(slText);
             
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
-            JOptionPane.showMessageDialog(f, msg);
+            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути");
+            // log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
 
-            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
             this.setCursor(Cursor.getDefaultCursor());
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            JOptionPane.showMessageDialog(f, msg);
         } catch (SQLException se) {
             this.setCursor(Cursor.getDefaultCursor());
             taText = " • Error: " + se.getMessage();
@@ -4640,13 +4986,7 @@ public class RirToEuro extends javax.swing.JFrame {
         String sql = "";
         ResultSet resultSet = null;
         String msg = "";
-
-        Date startDate = null;
-        Date endDate = null;
-        Long timeDifference = 0L;
-        Long secondsDifference = 0L;
-        Long minutesDifferense = 0L;
-        Long hoursDifference = 0L;
+        long startTime = System.currentTimeMillis();
 
         Integer record_id = 0;
         String month = "";
@@ -4738,7 +5078,6 @@ public class RirToEuro extends javax.swing.JFrame {
 
         try {
             this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-            startDate = generateCurrentDate();
             stmt = conn.createStatement();
             resultSet = stmt.executeQuery(sql);
 
@@ -4882,25 +5221,28 @@ public class RirToEuro extends javax.swing.JFrame {
 
             updateDaeuReportsFYearlyPlan(conn, host, db, table);
 
-            endDate = generateCurrentDate();
-            timeDifference = (endDate.getTime() - startDate.getTime());
-            secondsDifference = ((timeDifference / 1000) % 60);
-            minutesDifferense = ((timeDifference / (1000 * 60)) % 60);
-            hoursDifference = ((timeDifference / (1000 * 60 * 60)) % 24);
+            long endTime = System.currentTimeMillis();
+            long durationMillis = (endTime - startTime);
+            double durationMinutes = ((durationMillis / 1000.0) / 60.0);
+            int duration = (int) Math.round(durationMinutes);
 
-            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
+            taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!";
+            // taText = " • Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "";
             setDataGeneralStatisticsTextArea(taText);
             taText = "==================================================================================================================";
             setDataGeneralStatisticsTextArea(taText);
             
-            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // slText = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
             setStatusLabel(slText);
             
-            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
-            JOptionPane.showMessageDialog(f, msg);
+            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути");
+            // log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
 
-            log.info("Успешно превалутиране на: " + host + " | DB: " + db + " | Table: " + table + "");
             this.setCursor(Cursor.getDefaultCursor());
+            msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + " || За време: " + duration + " минути!" + "</FONT></i></html>";
+            // msg = "<html>&nbsp;&nbsp;<b><FONT COLOR=GREEN> • Успешно превалутиране на:&nbsp;&nbsp;</FONT></b><i><FONT COLOR=BLUE>" + host + " | DB: " + db + " | Table: " + table + "" + "</FONT></i></html>";
+            JOptionPane.showMessageDialog(f, msg);
         } catch (SQLException se) {
             this.setCursor(Cursor.getDefaultCursor());
             taText = " • Error: " + se.getMessage();

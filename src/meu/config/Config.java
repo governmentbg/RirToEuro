@@ -13,17 +13,9 @@ public enum Config {
     BASE_PATH_LOG("./log/"),
     URL_LOCAL_ITOP("jdbc:mariadb://127.0.0.1:3306/itop"),
     URL_LOCAL_DAEUREPORTS("jdbc:mariadb://127.0.0.1:3306/daeu_reports"),
-    URL_TEST_ITOP("jdbc:mariadb://XXX.XX.XXX.XX:3306/itop"),
-    URL_TEST_DAEUREPORTS("jdbc:mariadb://XXX.XX.XXX.XX:3306/daeu_reports"),
-    URL_PROD_ITOP("jdbc:mariadb://XXX.XX.XXX.XX:3306/itop"),
-    URL_PROD_DAEUREPORTS("jdbc:mariadb://XXX.XX.XXX.XX:3306/daeu_reports"),
     DRIVER_MARIADB("org.mariadb.jdbc.Driver"),
-    UNM_LOCAL(""),  // Username Local DB
-    PSD_LOCAL(""),  // Password Local DB
-    UNM_TEST(""),  // Username Test DB
-    PSD_TEST(""),  // Password Test DB
-    UNM_PROD(""),  // Username Prod DB
-    PSD_PROD(""),  // Password Prod DB
+    UNM_LOCAL(""),
+    PSD_LOCAL(""),
     ;
 
     private Config(final boolean defaultValue) {
